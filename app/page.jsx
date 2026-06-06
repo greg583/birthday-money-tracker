@@ -1,10 +1,11 @@
-'use client';
 
+'use client';
+ 
 import React, { useState, useEffect } from 'react';
 import { Trash2, Plus } from 'lucide-react';
-
+ 
 const GOAL = 1000;
-
+ 
 export default function Home() {
   const [contributors, setContributors] = useState([]);
   const [name, setName] = useState('');
@@ -12,9 +13,7 @@ export default function Home() {
   const [eventId, setEventId] = useState('');
   const [isSetupMode, setIsSetupMode] = useState(true);
   const [loading, setLoading] = useState(false);
-
-  const FIREBASE_DB = 'https://birthday-fund-default.firebaseio.com';
-
+ 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('event');
@@ -32,30 +31,16 @@ export default function Home() {
       }
     }
   }, []);
-
-  const loadContributions = async (id) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${FIREBASE_DB}/events/${id}.json`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.contributions) {
-          const contribArray = Object.values(data.contributions).filter(c => c);
-          setContributors(contribArray);
-          return;
-        }
-      }
-    } catch (error) {
-      console.log('Firebase unavailable');
-    }
-
+ 
+  const loadContributions = (id) => {
+    setLoading(true);
     const saved = localStorage.getItem(`contributors_${id}`);
     if (saved) {
       setContributors(JSON.parse(saved));
     }
     setLoading(false);
   };
-
+ 
   const handleCreateEvent = (e) => {
     e.preventDefault();
     const newId = Math.random().toString(36).substring(2, 9);
@@ -64,27 +49,15 @@ export default function Home() {
     setIsSetupMode(false);
     window.history.replaceState({}, '', `?event=${newId}`);
   };
-
-  const saveContributor = async (newContributor) => {
+ 
+  const saveContributor = (newContributor) => {
     setLoading(true);
-
-    try {
-      await fetch(`${FIREBASE_DB}/events/${eventId}/contributions/${newContributor.id}.json`, {
-        method: 'PUT',
-        body: JSON.stringify(newContributor),
-      });
-      loadContributions(eventId);
-      return;
-    } catch (error) {
-      console.log('Using local storage');
-    }
-
     const updated = [...contributors, newContributor];
     setContributors(updated);
     localStorage.setItem(`contributors_${eventId}`, JSON.stringify(updated));
     setLoading(false);
   };
-
+ 
   const handleAddContributor = (e) => {
     e?.preventDefault();
     
@@ -94,36 +67,25 @@ export default function Home() {
         name: name.trim(),
         amount: parseFloat(amount),
       };
-
+ 
       saveContributor(newContributor);
       setName('');
       setAmount('');
     }
   };
-
-  const handleRemove = async (id) => {
+ 
+  const handleRemove = (id) => {
     setLoading(true);
-    
-    try {
-      await fetch(`${FIREBASE_DB}/events/${eventId}/contributions/${id}.json`, {
-        method: 'DELETE',
-      });
-      loadContributions(eventId);
-      return;
-    } catch (error) {
-      console.log('Using local storage');
-    }
-
     const updated = contributors.filter(c => c.id !== id);
     setContributors(updated);
     localStorage.setItem(`contributors_${eventId}`, JSON.stringify(updated));
     setLoading(false);
   };
-
+ 
   const total = contributors.reduce((sum, c) => sum + c.amount, 0);
   const percentage = Math.min((total / GOAL) * 100, 100);
   const isGoalReached = total >= GOAL;
-
+ 
   if (isSetupMode) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-6 flex items-center justify-center">
@@ -136,7 +98,7 @@ export default function Home() {
             <p className="text-amber-700 mb-2">Josh's 11th Birthday Party 🎉</p>
             <p className="text-sm text-amber-600 font-serif">Track who's bringing cash for Josh's birthday!</p>
           </div>
-
+ 
           <form onSubmit={handleCreateEvent} className="bg-white rounded-2xl p-8 shadow-lg border-2 border-amber-100">
             <h2 className="text-xl font-bold text-amber-900 mb-4">Get Started</h2>
             <p className="text-amber-700 text-sm mb-6">
@@ -153,7 +115,7 @@ export default function Home() {
       </div>
     );
   }
-
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-6 md:p-12">
       {isGoalReached && (
@@ -172,7 +134,7 @@ export default function Home() {
           ))}
         </div>
       )}
-
+ 
       <style>{`
         @keyframes fall {
           to {
@@ -181,10 +143,10 @@ export default function Home() {
           }
         }
       `}</style>
-
+ 
       <div className="fixed top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-100 to-rose-100 rounded-full blur-3xl opacity-30 -z-10 pointer-events-none"></div>
       <div className="fixed bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-orange-100 to-amber-100 rounded-full blur-3xl opacity-30 -z-10 pointer-events-none"></div>
-
+ 
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
@@ -193,7 +155,7 @@ export default function Home() {
               Birthday Money
             </h1>
           </div>
-
+ 
           <div className="bg-gradient-to-br from-sky-100 to-blue-100 rounded-2xl p-8 border-3 border-sky-300 mb-8 shadow-lg">
             <div className="flex items-center justify-center gap-3 mb-4">
               <span className="text-4xl">🎂</span>
@@ -209,7 +171,7 @@ export default function Home() {
               We'll track all the cash contributions here so everyone knows what's being brought.
             </p>
           </div>
-
+ 
           <div className={`rounded-2xl p-8 border-2 mb-8 shadow-xl transition-all ${
             isGoalReached
               ? 'bg-gradient-to-r from-yellow-100 to-green-100 border-yellow-400'
@@ -218,7 +180,7 @@ export default function Home() {
             <p className={`text-lg font-semibold mb-2 ${isGoalReached ? 'text-yellow-700' : 'text-amber-700'}`}>
               {isGoalReached ? '🎉 TARGET REACHED! 🎉' : 'Cash Target: $' + GOAL}
             </p>
-
+ 
             <div className="mb-4">
               <div className="w-full bg-white rounded-full h-4 border-2 border-amber-200 overflow-hidden">
                 <div
@@ -237,7 +199,7 @@ export default function Home() {
                 </span>
               </div>
             </div>
-
+ 
             <p className={`text-sm ${isGoalReached ? 'text-green-700' : 'text-amber-700'}`}>
               {isGoalReached 
                 ? `🎊 ${contributors.length} people bringing cash!`
@@ -245,7 +207,7 @@ export default function Home() {
               }
             </p>
           </div>
-
+ 
           <div className="bg-white rounded-xl p-4 border-2 border-amber-200 mb-8 shadow-md">
             <p className="text-amber-700 text-sm font-semibold mb-2">Share this link:</p>
             <div className="flex gap-2">
@@ -265,15 +227,15 @@ export default function Home() {
                 Copy
               </button>
             </div>
-            <p className="text-amber-600 text-xs mt-2">💡 Refresh the page to see new contributions</p>
+            <p className="text-amber-600 text-xs mt-2">💡 Same device/browser to see updates</p>
           </div>
         </div>
-
+ 
         <form onSubmit={handleAddContributor} className="bg-white rounded-2xl p-8 shadow-lg border-2 border-amber-100 mb-8">
           <h2 className="text-2xl font-bold text-amber-900 mb-6 flex items-center gap-2">
             <Plus className="w-6 h-6" /> Add Your Cash
           </h2>
-
+ 
           <div className="grid md:grid-cols-3 gap-4">
             <input
               type="text"
@@ -302,7 +264,7 @@ export default function Home() {
             </button>
           </div>
         </form>
-
+ 
         {contributors.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-amber-900 mb-4">🏆 Leaderboard</h2>
@@ -327,10 +289,10 @@ export default function Home() {
             </div>
           </div>
         )}
-
+ 
         <div>
           <h2 className="text-2xl font-bold text-amber-900 mb-4">💵 Cash Tracker</h2>
-
+ 
           {contributors.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-amber-200">
               <span className="text-6xl block mb-4">💵</span>
